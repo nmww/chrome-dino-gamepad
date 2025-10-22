@@ -255,23 +255,23 @@
       }
       this.init();
     },
-    loadSounds() {
-      if (!IS_IOS) {
+    loadSounds: function () {
+      if (!IS_IOS && AudioContext) {
         this.audioContext = new AudioContext();
-
-        const resourceTemplate =
-            document.getElementById(this.config.RESOURCE_TEMPLATE_ID).content;
-
-        for (const sound in Runner.sounds) {
-          let soundSrc =
-              resourceTemplate.getElementById(Runner.sounds[sound]).src;
+        var resourceTemplate = document.getElementById(
+          this.config.RESOURCE_TEMPLATE_ID,
+        ).content;
+        for (var sound in Runner.sounds) {
+          var soundSrc = resourceTemplate.getElementById(Runner.sounds[sound])
+            .src;
           soundSrc = soundSrc.substr(soundSrc.indexOf(',') + 1);
-          const buffer = decodeBase64ToArrayBuffer(soundSrc);
-
-          // Async, so no guarantee of order in array.
-          this.audioContext.decodeAudioData(buffer, function(index, audioData) {
+          var buffer = decodeBase64ToArrayBuffer(soundSrc);
+          this.audioContext.decodeAudioData(
+            buffer,
+            function (index, audioData) {
               this.soundFx[index] = audioData;
-            }.bind(this, sound));
+            }.bind(this, sound),
+          );
         }
       }
     },
@@ -370,17 +370,16 @@
       if (!this.started && !this.crashed) {
         this.playingIntro = true;
         this.tRex.playingIntro = true;
-        document.styleSheets[0].insertRule(
-          '@-webkit-keyframes intro { ' +
-            'from { width:' +
-            Trex.config.WIDTH +
-            'px }' +
-            'to { width: ' +
-            this.dimensions.WIDTH +
-            'px }' +
-            '}',
-          0,
-        );
+        var styleTag = document.createElement('style');
+        styleTag.textContent = '@-webkit-keyframes intro { ' +
+          'from { width:' +
+          Trex.config.WIDTH +
+          'px }' +
+          'to { width: ' +
+          this.dimensions.WIDTH +
+          'px }' +
+          '}';
+        document.head.appendChild(styleTag);
         this.containerEl.addEventListener(
           Runner.events.ANIM_END,
           this.startGame.bind(this),
@@ -797,17 +796,12 @@
     return canvas;
   }
 
-  /**
-   * Decodes the base 64 audio to ArrayBuffer used by Web Audio.
-   * @param {string} base64String
-   */
   function decodeBase64ToArrayBuffer(base64String) {
-    const len = (base64String.length / 4) * 3;
-    const str = atob(base64String);
-    const arrayBuffer = new ArrayBuffer(len);
-    const bytes = new Uint8Array(arrayBuffer);
-
-    for (let i = 0; i < len; i++) {
+    var len = (base64String.length / 4) * 3;
+    var str = atob(base64String);
+    var arrayBuffer = new ArrayBuffer(len);
+    var bytes = new Uint8Array(arrayBuffer);
+    for (var i = 0; i < len; i++) {
       bytes[i] = str.charCodeAt(i);
     }
     return bytes.buffer;
@@ -1876,11 +1870,6 @@
     return;
   }
 
-  if ((!window.matchMedia('(display-mode: fullscreen)').matches) &&
-      (!window.matchMedia('(display-mode: standalone)').matches)) {
-    fullscreenBtn.hidden = false;
-  }
-
   function launchIntoFullscreen(element) {
     if(element.requestFullscreen) {
       element.requestFullscreen();
@@ -1907,12 +1896,12 @@
     var fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement;
     var canvas = document.getElementsByTagName('canvas')[0];
     if (fullscreenElement) {
-      fullscreenBtn.textContent = '□';
+      fullscreenBtn.textContent = '░';
       exitFullscreen();
       return;
     }
     launchIntoFullscreen(canvas);
-    fullscreenBtn.textContent = '■';
+    fullscreenBtn.textContent = '█';
   });
 
   var darkModeToggleBtn = document.getElementById('dark-mode-toggle');
